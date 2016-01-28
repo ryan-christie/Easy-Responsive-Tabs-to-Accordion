@@ -26,7 +26,8 @@
             //Events
             $(this).bind('tabactivate', function (e, currentTab) {
                 if (typeof options.activate === 'function') {
-                    options.activate.call(currentTab, e)
+                    options.activate.call(currentTab, e);
+                    currentTab.focus();
                 }
             });
 
@@ -35,7 +36,7 @@
                 var $respTabs = $(this);
                 var $respTabsList = $respTabs.find('ul.resp-tabs-list.' + options.tabidentify);
                 var respTabsId = $respTabs.attr('id');
-                $respTabs.find('ul.resp-tabs-list.' + options.tabidentify + ' li').addClass('resp-tab-item').addClass(options.tabidentify);
+                $respTabs.find('ul.resp-tabs-list.' + options.tabidentify + ' li').addClass('resp-tab-item').addClass(options.tabidentify).attr('tabindex','0');
                 $respTabs.css({
                     'display': 'block',
                     'width': jwidth
@@ -63,7 +64,7 @@
 
                 //Assigning the h2 markup to accordion title
                 var $tabItemh2;
-                $respTabs.find('.resp-tab-content.' + options.tabidentify).before("<h2 class='resp-accordion " + options.tabidentify + "' role='tab'><span class='resp-arrow'></span></h2>");
+                $respTabs.find('.resp-tab-content.' + options.tabidentify).before("<h2 class='resp-accordion " + options.tabidentify + "' role='tab' tabindex='0'><span class='resp-arrow'></span></h2>");
 
                 $respTabs.find('.resp-tab-content.' + options.tabidentify).prev("h2").css({
                     'background-color': options.inactive_bg,
@@ -138,77 +139,139 @@
                    // $($respTabs.find('.resp-tab-content.' + options.tabidentify)[tabNum]).addClass('resp-accordion-closed'); //removed resp-tab-content-active
                 }
 
+                // Move event logic into it's own function for re-use
+                var processEvent = function (currentTab) {
+                    var $currentTab = $(currentTab);
+                    var $tabAria = $currentTab.attr('aria-controls');
+
+                    if ($currentTab.hasClass('resp-accordion') && $currentTab.hasClass('resp-tab-active')) {
+                        $respTabs.find('.resp-tab-content-active.' + options.tabidentify).slideUp('', function () {
+                            $(this).addClass('resp-accordion-closed');
+                        });
+                        $currentTab.removeClass('resp-tab-active').css({
+                            'background-color': options.inactive_bg,
+                            'border-color': 'none'
+                        });
+                        return false;
+                    }
+                    if (!$currentTab.hasClass('resp-tab-active') && $currentTab.hasClass('resp-accordion')) {
+                        $respTabs.find('.resp-tab-active.' + options.tabidentify).removeClass('resp-tab-active').css({
+                            'background-color': options.inactive_bg,
+                            'border-color': 'none'
+                        });
+                        $respTabs.find('.resp-tab-content-active.' + options.tabidentify).slideUp().removeClass('resp-tab-content-active resp-accordion-closed');
+                        $respTabs.find("[aria-controls=" + $tabAria + "]").addClass('resp-tab-active').css({
+                            'background-color': options.activetab_bg,
+                            'border-color': options.active_border_color
+                        });
+
+                        $respTabs.find('.resp-tab-content[aria-labelledby = ' + $tabAria + '].' + options.tabidentify).slideDown().addClass('resp-tab-content-active');
+                    } else {
+                        console.log('here');
+                        $respTabs.find('.resp-tab-active.' + options.tabidentify).removeClass('resp-tab-active').css({
+                            'background-color': options.inactive_bg,
+                            'border-color': 'none'
+                        });
+
+                        $respTabs.find('.resp-tab-content-active.' + options.tabidentify).removeAttr('style').removeClass('resp-tab-content-active').removeClass('resp-accordion-closed');
+
+                        $respTabs.find("[aria-controls=" + $tabAria + "]").addClass('resp-tab-active').css({
+                            'background-color': options.activetab_bg,
+                            'border-color': options.active_border_color
+                        });
+
+                        $respTabs.find('.resp-tab-content[aria-labelledby = ' + $tabAria + '].' + options.tabidentify).addClass('resp-tab-content-active').attr('style', 'display:block');
+                    }
+                    //Trigger tab activation event
+                    $currentTab.trigger('tabactivate', $currentTab);
+
+                    //Update Browser History
+                    if (historyApi) {
+                        var currentHash = window.location.hash;
+                        var tabAriaParts = $tabAria.split('tab_item-');
+                        // var newHash = respTabsId + (parseInt($tabAria.substring(9), 10) + 1).toString();
+                        var newHash = respTabsId + (parseInt(tabAriaParts[1], 10) + 1).toString();
+                        if (currentHash != "") {
+                            var re = new RegExp(respTabsId + "[0-9]+");
+                            if (currentHash.match(re) != null) {
+                                newHash = currentHash.replace(re, newHash);
+                            }
+                            else {
+                                newHash = currentHash + "|" + newHash;
+                            }
+                        }
+                        else {
+                            newHash = '#' + newHash;
+                        }
+
+                        history.replaceState(null, null, newHash);
+                    }
+                }
+
+
                 //Tab Click action function
                 $respTabs.find("[role=tab]").each(function () {
 
                     var $currentTab = $(this);
+
+                    // Keyboard events
+                    $currentTab.keydown('keydown', function (e) {
+                        var key = e.keyCode;
+                        if ( (key > 36 && key < 41) || key === 13) {
+                            var tabActive = $currentTab.hasClass('resp-tab-active');
+                            var inAccordion = $currentTab.hasClass('resp-accordion');
+                            var inVtabs = options.type === 'vertical';
+
+                            if (tabActive) {
+                                switch (key) {
+                                    case 37:
+                                        if (!inAccordion && !inVtabs) {
+                                           var $prev =  $currentTab.prev();
+                                           if ($prev.length) {
+                                                e.preventDefault();
+                                                processEvent($prev);
+                                           }
+                                        }
+                                        break;
+                                    case 38:
+                                        if (inAccordion || inVtabs) {
+                                           var $prev =  inAccordion ? $currentTab.prev().prev() : $currentTab.prev();
+                                           if ($prev.length) {
+                                                e.preventDefault();
+                                                processEvent($prev);
+                                           }
+                                        }
+                                        break;
+                                    case 39:
+                                        if (!inAccordion && !inVtabs) {
+                                           var $next =  $currentTab.next();
+                                           if ($next.length) {
+                                                e.preventDefault();
+                                                processEvent($next);
+                                           }
+                                        }
+                                        break;
+                                    case 40:
+                                        if (inAccordion || inVtabs) {
+                                           var $next = inAccordion ? $currentTab.next().next() :$currentTab.next();
+                                           if ($next.length) {
+                                                e.preventDefault();
+                                                processEvent($next);
+                                           }
+                                        }
+                                        break;
+                                };
+                            }
+                            if (key === 13 || (key === 13 && inAccordion) ) {
+                                e.preventDefault();
+                                processEvent($currentTab);
+                            }
+                        }
+                    });
+
                     $currentTab.click(function () {
-
-                        var $currentTab = $(this);
-                        var $tabAria = $currentTab.attr('aria-controls');
-
-                        if ($currentTab.hasClass('resp-accordion') && $currentTab.hasClass('resp-tab-active')) {
-                            $respTabs.find('.resp-tab-content-active.' + options.tabidentify).slideUp('', function () {
-                                $(this).addClass('resp-accordion-closed');
-                            });
-                            $currentTab.removeClass('resp-tab-active').css({
-                                'background-color': options.inactive_bg,
-                                'border-color': 'none'
-                            });
-                            return false;
-                        }
-                        if (!$currentTab.hasClass('resp-tab-active') && $currentTab.hasClass('resp-accordion')) {
-                            $respTabs.find('.resp-tab-active.' + options.tabidentify).removeClass('resp-tab-active').css({
-                                'background-color': options.inactive_bg,
-                                'border-color': 'none'
-                            });
-                            $respTabs.find('.resp-tab-content-active.' + options.tabidentify).slideUp().removeClass('resp-tab-content-active resp-accordion-closed');
-                            $respTabs.find("[aria-controls=" + $tabAria + "]").addClass('resp-tab-active').css({
-                                'background-color': options.activetab_bg,
-                                'border-color': options.active_border_color
-                            });
-
-                            $respTabs.find('.resp-tab-content[aria-labelledby = ' + $tabAria + '].' + options.tabidentify).slideDown().addClass('resp-tab-content-active');
-                        } else {
-                            console.log('here');
-                            $respTabs.find('.resp-tab-active.' + options.tabidentify).removeClass('resp-tab-active').css({
-                                'background-color': options.inactive_bg,
-                                'border-color': 'none'
-                            });
-
-                            $respTabs.find('.resp-tab-content-active.' + options.tabidentify).removeAttr('style').removeClass('resp-tab-content-active').removeClass('resp-accordion-closed');
-
-                            $respTabs.find("[aria-controls=" + $tabAria + "]").addClass('resp-tab-active').css({
-                                'background-color': options.activetab_bg,
-                                'border-color': options.active_border_color
-                            });
-
-                            $respTabs.find('.resp-tab-content[aria-labelledby = ' + $tabAria + '].' + options.tabidentify).addClass('resp-tab-content-active').attr('style', 'display:block');
-                        }
-                        //Trigger tab activation event
-                        $currentTab.trigger('tabactivate', $currentTab);
-
-                        //Update Browser History
-                        if (historyApi) {
-                            var currentHash = window.location.hash;
-                            var tabAriaParts = $tabAria.split('tab_item-');
-                            // var newHash = respTabsId + (parseInt($tabAria.substring(9), 10) + 1).toString();
-                            var newHash = respTabsId + (parseInt(tabAriaParts[1], 10) + 1).toString();
-                            if (currentHash != "") {
-                                var re = new RegExp(respTabsId + "[0-9]+");
-                                if (currentHash.match(re) != null) {
-                                    newHash = currentHash.replace(re, newHash);
-                                }
-                                else {
-                                    newHash = currentHash + "|" + newHash;
-                                }
-                            }
-                            else {
-                                newHash = '#' + newHash;
-                            }
-
-                            history.replaceState(null, null, newHash);
-                        }
+                        // Process tab event
+                        processEvent(this);
                     });
 
                 });
