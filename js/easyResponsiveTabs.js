@@ -26,7 +26,8 @@
             //Events
             $(this).bind('tabactivate', function (e, currentTab) {
                 if (typeof options.activate === 'function') {
-                    options.activate.call(currentTab, e)
+                    options.activate.call(currentTab, e);
+                    currentTab.focus();
                 }
             });
 
@@ -212,6 +213,66 @@
                 $respTabs.find("[role=tab]").each(function () {
 
                     var $currentTab = $(this);
+
+                    // Keyboard events
+                    $currentTab.keydown('keydown', function (e) {
+                        var key = e.keyCode;
+                        if ( (key > 36 && key < 41) || key === 13) {
+                            var tabActive = $currentTab.hasClass('resp-tab-active');
+                            var inAccordion = $currentTab.hasClass('resp-accordion');
+                            var inVtabs = options.type === 'vertical';
+
+                            if (tabActive) {
+                                switch (key) {
+                                    case 37:
+                                        console.log('left');
+                                        if (!inAccordion && !inVtabs) {
+                                           var $prev =  $currentTab.prev();
+                                           if ($prev.length) {
+                                                e.preventDefault();
+                                                processEvent($prev);
+                                           }
+                                        }
+                                        break;
+                                    case 38:
+                                        console.log('up');
+                                        if (inAccordion || inVtabs) {
+                                           var $prev =  inAccordion ? $currentTab.prev().prev() : $currentTab.prev();
+                                           if ($prev.length) {
+                                                e.preventDefault();
+                                                processEvent($prev);
+                                           }
+                                        }
+                                        break;
+                                    case 39:
+                                        console.log('right');
+                                        if (!inAccordion && !inVtabs) {
+                                           var $next =  $currentTab.next();
+                                           if ($next.length) {
+                                                e.preventDefault();
+                                                processEvent($next);
+                                           }
+                                        }
+                                        break;
+                                    case 40:
+                                        console.log('down');
+                                        if (inAccordion || inVtabs) {
+                                           var $next = inAccordion ? $currentTab.next().next() :$currentTab.next();
+                                           if ($next.length) {
+                                                e.preventDefault();
+                                                processEvent($next);
+                                           }
+                                        }
+                                        break;
+                                };
+                            }
+                            if (key === 13 || (key === 13 && inAccordion) ) {
+                                e.preventDefault();
+                                console.log('enter',this);
+                                processEvent($currentTab);
+                            }
+                        }
+                    });
 
                     $currentTab.click(function () {
                         // Process tab event
