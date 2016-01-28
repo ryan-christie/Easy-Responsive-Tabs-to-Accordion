@@ -225,7 +225,6 @@
                             if (tabActive) {
                                 switch (key) {
                                     case 37:
-                                        console.log('left');
                                         if (!inAccordion && !inVtabs) {
                                            var $prev =  $currentTab.prev();
                                            if ($prev.length) {
@@ -235,7 +234,6 @@
                                         }
                                         break;
                                     case 38:
-                                        console.log('up');
                                         if (inAccordion || inVtabs) {
                                            var $prev =  inAccordion ? $currentTab.prev().prev() : $currentTab.prev();
                                            if ($prev.length) {
@@ -245,7 +243,6 @@
                                         }
                                         break;
                                     case 39:
-                                        console.log('right');
                                         if (!inAccordion && !inVtabs) {
                                            var $next =  $currentTab.next();
                                            if ($next.length) {
@@ -255,7 +252,6 @@
                                         }
                                         break;
                                     case 40:
-                                        console.log('down');
                                         if (inAccordion || inVtabs) {
                                            var $next = inAccordion ? $currentTab.next().next() :$currentTab.next();
                                            if ($next.length) {
@@ -268,7 +264,6 @@
                             }
                             if (key === 13 || (key === 13 && inAccordion) ) {
                                 e.preventDefault();
-                                console.log('enter',this);
                                 processEvent($currentTab);
                             }
                         }
