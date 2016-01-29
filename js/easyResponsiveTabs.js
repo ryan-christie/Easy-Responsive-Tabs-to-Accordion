@@ -67,8 +67,7 @@
                     'border-color': options.active_border_color
                 });
 
-                var itemCount = 0;
-                $respTabsH2.each(function () {
+                $respTabsH2.each(function (itemCount) {
                     var $tabItemh2 = $(this);
                     var $tabItem = $($respTabsItems[itemCount]);
                     var $accItem = $($respTabsH2[itemCount]);
@@ -78,7 +77,6 @@
                         'id': respTabsId + '-accord-' + (itemCount),
                         'aria-controls': respTabsId + '-container-' + (itemCount)
                     });
-                    itemCount++;
                 });
 
                 //Assigning the 'aria-controls' to Tab items
@@ -97,10 +95,9 @@
 
                     count++;
                 });
-                
+
                 //Assigning the 'aria-labelledby' attr to tab-content
-                var tabcount = 0;
-                $respTabsPanels.each(function () {
+                $respTabsPanels.each(function (tabcount) {
                     $tabContent = $(this);
                     $tabContent.attr({
                         'id': respTabsId + '-container-' + (tabcount),
@@ -108,7 +105,6 @@
                     }).css({
                         'border-color': options.active_border_color
                     });
-                    tabcount++;
                 });
 
                 // Show correct content area
