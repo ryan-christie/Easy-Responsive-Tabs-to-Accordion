@@ -9,6 +9,7 @@
                 width: 'auto',
                 fit: true,
                 closed: false,
+                keyboard: true,
                 tabidentify: '',
                 activetab_bg: 'white',
                 inactive_bg: '#F5F5F5',
@@ -27,6 +28,8 @@
             $(this).bind('tabactivate', function (e, currentTab) {
                 if (typeof options.activate === 'function') {
                     options.activate.call(currentTab, e);
+                }
+                if (options.keyboard) {
                     currentTab.focus();
                 }
             });
@@ -64,6 +67,7 @@
 
                 //Assigning the h2 markup to accordion title
                 var $tabItemh2;
+                var tabIndex = options.keyboard ? " tabindex='0'" : '';
                 $respTabs.find('.resp-tab-content.' + options.tabidentify).before("<h2 class='resp-accordion " + options.tabidentify + "' role='tab' tabindex='0'><span class='resp-arrow'></span></h2>");
 
                 $respTabs.find('.resp-tab-content.' + options.tabidentify).prev("h2").css({
@@ -97,10 +101,12 @@
                     $tabItem.attr({
                         role: 'tab', 
                         id: respTabsId + '-tab-' + (count), 
-                        tabindex:'0',
                         'aria-selected': 'false'
                     });
-                    $tabItem.css({
+                    if (options.keyboard) {
+                        $tabItem.attr('tabindex','0');
+                    }
+                    $tabItem.css({ 
                         'background-color': options.inactive_bg,
                         'border-color': 'none'
                     });
@@ -232,66 +238,69 @@
                 }
 
 
-                //Tab Click action function
+                //Tab Events
                 $respTabs.find("[role=tab]").each(function () {
 
                     var $currentTab = $(this);
 
                     // Keyboard events
-                    $currentTab.keydown('keydown', function (e) {
-                        var key = e.keyCode;
-                        if ( (key > 36 && key < 41) || key === 13) {
-                            var tabActive = $currentTab.hasClass('resp-tab-active');
-                            var inAccordion = $currentTab.hasClass('resp-accordion');
-                            var inVtabs = options.type === 'vertical';
+                    if (options.keyboard) {
+                        $currentTab.keydown('keydown', function (e) {
+                            var key = e.keyCode;
+                            if ( (key > 36 && key < 41) || key === 13) {
+                                var tabActive = $currentTab.hasClass('resp-tab-active');
+                                var inAccordion = $currentTab.hasClass('resp-accordion');
+                                var inVtabs = options.type === 'vertical';
 
-                            if (tabActive) {
-                                switch (key) {
-                                    case 37:
-                                        if (!inAccordion && !inVtabs) {
-                                           var $prev =  $currentTab.prev();
-                                           if ($prev.length) {
-                                                e.preventDefault();
-                                                processEvent($prev);
-                                           }
-                                        }
-                                        break;
-                                    case 38:
-                                        if (inAccordion || inVtabs) {
-                                           var $prev =  inAccordion ? $currentTab.prev().prev() : $currentTab.prev();
-                                           if ($prev.length) {
-                                                e.preventDefault();
-                                                processEvent($prev);
-                                           }
-                                        }
-                                        break;
-                                    case 39:
-                                        if (!inAccordion && !inVtabs) {
-                                           var $next =  $currentTab.next();
-                                           if ($next.length) {
-                                                e.preventDefault();
-                                                processEvent($next);
-                                           }
-                                        }
-                                        break;
-                                    case 40:
-                                        if (inAccordion || inVtabs) {
-                                           var $next = inAccordion ? $currentTab.next().next() :$currentTab.next();
-                                           if ($next.length) {
-                                                e.preventDefault();
-                                                processEvent($next);
-                                           }
-                                        }
-                                        break;
-                                };
+                                if (tabActive) {
+                                    switch (key) {
+                                        case 37:
+                                            if (!inAccordion && !inVtabs) {
+                                               var $prev =  $currentTab.prev();
+                                               if ($prev.length) {
+                                                    e.preventDefault();
+                                                    processEvent($prev);
+                                               }
+                                            }
+                                            break;
+                                        case 38:
+                                            if (inAccordion || inVtabs) {
+                                               var $prev =  inAccordion ? $currentTab.prev().prev() : $currentTab.prev();
+                                               if ($prev.length) {
+                                                    e.preventDefault();
+                                                    processEvent($prev);
+                                               }
+                                            }
+                                            break;
+                                        case 39:
+                                            if (!inAccordion && !inVtabs) {
+                                               var $next =  $currentTab.next();
+                                               if ($next.length) {
+                                                    e.preventDefault();
+                                                    processEvent($next);
+                                               }
+                                            }
+                                            break;
+                                        case 40:
+                                            if (inAccordion || inVtabs) {
+                                               var $next = inAccordion ? $currentTab.next().next() :$currentTab.next();
+                                               if ($next.length) {
+                                                    e.preventDefault();
+                                                    processEvent($next);
+                                               }
+                                            }
+                                            break;
+                                    };
+                                }
+                                if (key === 13 || (key === 13 && inAccordion) ) {
+                                    e.preventDefault();
+                                    processEvent($currentTab);
+                                }
                             }
-                            if (key === 13 || (key === 13 && inAccordion) ) {
-                                e.preventDefault();
-                                processEvent($currentTab);
-                            }
-                        }
-                    });
+                        });
+                    }
 
+                    //Tab Click action function
                     $currentTab.click(function () {
                         // Process tab event
                         processEvent(this);
