@@ -95,19 +95,20 @@
                         'border-color': 'none'
                     });
 
-                    //Assigning the 'aria-labelledby' attr to tab-content
-                    var tabcount = 0;
-                    $respTabsPanels.each(function () {
-                        $tabContent = $(this);
-                        $tabContent.attr({
-                            'id': respTabsId + '-container-' + (tabcount),
-                            'aria-labelledby': respTabsId + '-tab-' + (tabcount)
-                        }).css({
-                            'border-color': options.active_border_color
-                        });
-                        tabcount++;
-                    });
                     count++;
+                });
+                
+                //Assigning the 'aria-labelledby' attr to tab-content
+                var tabcount = 0;
+                $respTabsPanels.each(function () {
+                    $tabContent = $(this);
+                    $tabContent.attr({
+                        'id': respTabsId + '-container-' + (tabcount),
+                        'aria-labelledby': respTabsId + '-tab-' + (tabcount)
+                    }).css({
+                        'border-color': options.active_border_color
+                    });
+                    tabcount++;
                 });
 
                 // Show correct content area
