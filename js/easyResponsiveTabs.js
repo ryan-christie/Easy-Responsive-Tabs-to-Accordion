@@ -82,7 +82,6 @@
                     var $accItem = $respTabs.find('.resp-accordion:eq(' + itemCount + ')');
                     $accItem.append($tabItem.html());
                     $accItem.data($tabItem.data());
-                    // $tabItemh2.attr('aria-controls', options.tabidentify + '_tab_item-' + (itemCount));
                     $tabItemh2.attr({
                         'aria-controls': respTabsId + '-container-' + (itemCount),
                         'aria-selected': 'false'
@@ -95,10 +94,8 @@
                     $tabContent;
                 $respTabs.find('.resp-tab-item').each(function () {
                     $tabItem = $(this);
-                    // $tabItem.attr('aria-controls', options.tabidentify + '_tab_item-' + (count));
-                    $tabItem.attr('aria-controls', respTabsId + '-container-' + (count));
-                    // $tabItem.attr('role', 'tab');
                     $tabItem.attr({
+                        'aria-controls': respTabsId + '-container-' + (count),
                         role: 'tab', 
                         id: respTabsId + '-tab-' + (count), 
                         'aria-selected': 'false'
@@ -165,7 +162,7 @@
                    // $($respTabs.find('.resp-tab-content.' + options.tabidentify)[tabNum]).addClass('resp-accordion-closed'); //removed resp-tab-content-active
                 }
 
-                // Move event logic into it's own function for re-use
+                // Click or Keyboard tab event
                 var processEvent = function (currentTab) {
                     var $currentTab = $(currentTab);
                     var $tabAria = $currentTab.attr('aria-controls');
@@ -190,11 +187,8 @@
                             'background-color': options.activetab_bg,
                             'border-color': options.active_border_color
                         }).attr('aria-selected','true');
-                        // console.log('#' + $tabAria);
                         $respTabs.find('#' + $tabAria).slideDown().addClass('resp-tab-content-active').attr('aria-hidden','false');
                     } else {
-                        // console.log('here');
-                        // console.log('#' + $tabAria);
                         $respTabs.find('.resp-tab-active.' + options.tabidentify).removeClass('resp-tab-active').css({
                             'background-color': options.inactive_bg,
                             'border-color': 'none'
