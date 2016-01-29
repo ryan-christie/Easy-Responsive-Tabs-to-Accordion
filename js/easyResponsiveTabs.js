@@ -9,7 +9,6 @@
                 width: 'auto',
                 fit: true,
                 closed: false,
-                tabidentify: '',
                 activetab_bg: 'white',
                 inactive_bg: '#F5F5F5',
                 active_border_color: '#c1c1c1',
@@ -58,12 +57,12 @@
                     }
                     if (jtype == accord) {
                         $respTabs.addClass('resp-easy-accordion');
-                        $respTabs.find('.resp-tabs-list').css('display', 'none');
+                        $respTabsList.css('display', 'none');
                     }
                 }
 
                 //Assigning the h2 markup to accordion title
-                var $tabItemh2;
+                // var $tabItemh2;
                 // $respTabs.find('.resp-tab-content.' + options.tabidentify).before("<h2 class='resp-accordion " + options.tabidentify + "' role='tab'><span class='resp-arrow'></span></h2>");
                 $respTabsPanels.before("<h2 class='resp-accordion' role='tab'><span class='resp-arrow'></span></h2>");
 
@@ -78,23 +77,30 @@
                 });
 
                 var itemCount = 0;
-                $respTabs.find('.resp-accordion').each(function () {
-                    $tabItemh2 = $(this);
-                    var $tabItem = $respTabs.find('.resp-tab-item:eq(' + itemCount + ')');
-                    var $accItem = $respTabs.find('.resp-accordion:eq(' + itemCount + ')');
+                $respTabsH2.each(function () {
+                    var $tabItemh2 = $(this);
+                    // var $tabItem = $respTabs.find('.resp-tab-item:eq(' + itemCount + ')');
+                    var $tabItem = $($respTabsItems[itemCount]);
+                    // var $accItem = $respTabs.find('.resp-accordion:eq(' + itemCount + ')');
+                    var $accItem = $($respTabsH2[itemCount]);
                     $accItem.append($tabItem.html());
                     $accItem.data($tabItem.data());
-                    $tabItemh2.attr('aria-controls', options.tabidentify + '_tab_item-' + (itemCount));
+                    $tabItemh2.attr({
+                        'id': respTabsId + '-accord-' + (itemCount),
+                        'aria-controls': respTabsId + '-container-' + (itemCount)
+                    });
                     itemCount++;
                 });
 
                 //Assigning the 'aria-controls' to Tab items
-                var count = 0,
-                    $tabContent;
-                $respTabs.find('.resp-tab-item').each(function () {
-                    $tabItem = $(this);
-                    $tabItem.attr('aria-controls', options.tabidentify + '_tab_item-' + (count));
-                    $tabItem.attr('role', 'tab');
+                var count = 0;
+                $respTabsItems.each(function () {
+                    var $tabItem = $(this);
+                    $tabItem.attr({
+                        'id': respTabsId + '-tab-' + (count),
+                        'aria-controls': respTabsId + '-container-' + (count),
+                        'role': 'tab'
+                    });
                     $tabItem.css({
                         'background-color': options.inactive_bg,
                         'border-color': 'none'
@@ -105,7 +111,10 @@
                     // $respTabs.find('.resp-tab-content.' + options.tabidentify).each(function () {
                     $respTabsPanels.each(function () {
                         $tabContent = $(this);
-                        $tabContent.attr('aria-labelledby', options.tabidentify + '_tab_item-' + (tabcount)).css({
+                        $tabContent.attr({
+                            'id': respTabsId + '-container-' + (tabcount),
+                            'aria-labelledby': respTabsId + '-tab-' + (tabcount)
+                        }).css({
                             'border-color': options.active_border_color
                         });
                         tabcount++;
@@ -157,7 +166,7 @@
 
                     if ($currentTab.hasClass('resp-accordion') && $currentTab.hasClass('resp-tab-active')) {
                         $respTabsContainer.find('.resp-tab-content-active').slideUp('', function () {
-                            $(this).addClass('resp-accordion-closed');
+                            $(this).addClass('resp-accordion-closed').removeAttr('style');
                         });
                         $currentTab.removeClass('resp-tab-active').css({
                             'background-color': options.inactive_bg,
@@ -176,9 +185,9 @@
                             'border-color': options.active_border_color
                         });
 
-                        $respTabsContainer.find('.resp-tab-content[aria-labelledby = ' + $tabAria + ']').slideDown().addClass('resp-tab-content-active');
+                        $respTabsContainer.find('#' + $tabAria).slideDown().addClass('resp-tab-content-active');
                     } else {
-                        console.log('here');
+                        // console.log("[aria-controls=" + $tabAria + "]",'.resp-tab-content[aria-labelledby = ' + $tabAria + ']');
                         $respTabs.children().children('.resp-tab-active').removeClass('resp-tab-active').css({
                             'background-color': options.inactive_bg,
                             'border-color': 'none'
@@ -191,7 +200,8 @@
                             'border-color': options.active_border_color
                         });
 
-                        $respTabsContainer.find('.resp-tab-content[aria-labelledby = ' + $tabAria + ']').addClass('resp-tab-content-active').attr('style', 'display:block');
+                        $respTabsContainer.find('#' + $tabAria).addClass('resp-tab-content-active').attr('style', 'display:block');
+                        // $respTabsContainer.find('.resp-tab-content[aria-labelledby = ' + $tabAria + ']').addClass('resp-tab-content-active').attr('style', 'display:block');
                     }
                     //Trigger tab activation event
                     $currentTab.trigger('tabactivate', $currentTab);
@@ -199,7 +209,7 @@
                     //Update Browser History
                     if (historyApi) {
                         var currentHash = window.location.hash;
-                        var tabAriaParts = $tabAria.split('tab_item-');
+                        var tabAriaParts = $tabAria.split('-container-');
                         // var newHash = respTabsId + (parseInt($tabAria.substring(9), 10) + 1).toString();
                         var newHash = respTabsId + (parseInt(tabAriaParts[1], 10) + 1).toString();
                         if (currentHash != "") {
@@ -234,9 +244,9 @@
                 // });
 
                 //Window resize function                   
-                $(window).resize(function () {
-                    $respTabs.find('.resp-accordion-closed').removeAttr('style');
-                });
+                // $(window).resize(function () {
+                //     $respTabs.find('.resp-accordion-closed').removeAttr('style');
+                // });
             });
         }
     });
