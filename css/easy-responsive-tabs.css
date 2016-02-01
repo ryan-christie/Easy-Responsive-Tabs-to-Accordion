@@ -87,6 +87,11 @@ h2.resp-tab-title:last-child {
     background: blue;
 }
 
+[role='tab']:focus {
+    outline: dotted #AAA 1px;
+}
+
+
 /*-----------Vertical tabs-----------*/
 .resp-vtabs ul.resp-tabs-list {
     float: left;
