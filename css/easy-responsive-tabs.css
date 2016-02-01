@@ -21,6 +21,13 @@ ul.resp-tabs-list, p {
     float: left;
 }
 
+/* If Modernizr is used or something that changes .no-js to .js class at root element*/
+.js .resp-tabs-init .resp-tabs-container {
+    visibility: hidden;
+    max-height: 200px;
+    overflow: hidden;
+}
+
 .resp-tabs-container {
     padding: 0px;
     background-color: #fff;
@@ -79,6 +86,11 @@ h2.resp-tab-title:last-child {
     border-bottom: 12px solid #c1c1c1 !important;
     background: blue;
 }
+
+[role='tab']:focus {
+    outline: dotted #AAA 1px;
+}
+
 
 /*-----------Vertical tabs-----------*/
 .resp-vtabs ul.resp-tabs-list {
