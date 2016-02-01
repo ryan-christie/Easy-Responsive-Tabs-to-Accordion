@@ -9,6 +9,7 @@
                 width: 'auto',
                 fit: true,
                 closed: false,
+                keyboard: true,
                 activetab_bg: 'white',
                 inactive_bg: '#F5F5F5',
                 active_border_color: '#c1c1c1',
@@ -27,17 +28,20 @@
                 if (typeof options.activate === 'function') {
                     options.activate.call(currentTab, e)
                 }
+                if (options.keyboard) {
+                    currentTab.focus();
+                }
             });
 
             //Main function
             this.each(function () {
-                var $respTabs = $(this);
-                var $respTabsList = $respTabs.children('ul');
-                var respTabsId = $respTabs.attr('id');
-                var $respTabsItems = $respTabsList.children().addClass('resp-tab-item').css({
+                var $respTabs = $(this).css({
                     'display': 'block',
                     'width': jwidth
                 });
+                var $respTabsList = $respTabs.children('ul').attr('role','tablist');
+                var respTabsId = $respTabs.attr('id');
+                var $respTabsItems = $respTabsList.children().addClass('resp-tab-item');
 
                 if (options.type == 'vertical')
                     $respTabsList.css('margin-top', '3px');
@@ -60,7 +64,8 @@
                 }
 
                 //Assigning the h2 markup to accordion title
-                $respTabsPanels.before("<h2 class='resp-accordion' role='tab'><span class='resp-arrow'></span></h2>");
+                var tabIndex = options.keyboard ? " tabindex='0'" : '';
+                $respTabsPanels.before("<h2 class='resp-accordion' role='tab'" + tabIndex + "><span class='resp-arrow'></span></h2>");
 
                 var $respTabsH2 = $respTabsContainer.children("h2").css({
                     'background-color': options.inactive_bg,
@@ -75,7 +80,8 @@
                     $accItem.data($tabItem.data());
                     $tabItemh2.attr({
                         'id': respTabsId + '-accord-' + (itemCount),
-                        'aria-controls': respTabsId + '-container-' + (itemCount)
+                        'aria-controls': respTabsId + '-container-' + (itemCount),
+                        'aria-selected': 'false'
                     });
                 });
 
@@ -86,12 +92,16 @@
                     $tabItem.attr({
                         'id': respTabsId + '-tab-' + (count),
                         'aria-controls': respTabsId + '-container-' + (count),
-                        'role': 'tab'
-                    });
-                    $tabItem.css({
+                        'role': 'tab', 
+                        'aria-selected': 'false'
+                    }).css({
                         'background-color': options.inactive_bg,
                         'border-color': 'none'
                     });
+
+                    if (options.keyboard) {
+                        $tabItem.attr('tabindex','0');
+                    }
 
                     count++;
                 });
@@ -101,7 +111,8 @@
                     $tabContent = $(this);
                     $tabContent.attr({
                         'id': respTabsId + '-container-' + (tabcount),
-                        'aria-labelledby': respTabsId + '-tab-' + (tabcount)
+                        'aria-labelledby': respTabsId + '-tab-' + (tabcount),
+                        'aria-hidden': 'true'
                     }).css({
                         'border-color': options.active_border_color
                     });
@@ -123,7 +134,7 @@
                 $($respTabsItems[tabNum]).addClass('resp-tab-active').css({
                     'background-color': options.activetab_bg,
                     'border-color': options.active_border_color
-                });
+                }).attr('aria-selected','true');
 
                 //keep closed if option = 'closed' or option is 'accordion' and the element is in accordion mode
                 if (options.closed !== true && !(options.closed === 'accordion' && !$respTabsList.is(':visible')) && !(options.closed === 'tabs' && $respTabsList.is(':visible'))) {
@@ -131,9 +142,12 @@
                         'background-color': options.activetab_bg + ' !important',
                         'border-color': options.active_border_color,
                         'background': 'none'
-                    });
+                    }).attr('aria-selected','true');
 
-                    $($respTabsPanels[tabNum]).addClass('resp-tab-content-active').attr('style', 'display:block');
+                    $($respTabsPanels[tabNum]).addClass('resp-tab-content-active').attr({
+                        'style': 'display:block',
+                        'aria-hidden': 'false'
+                    });
                 }
 
                 var processEvent =  function(currentTab) {
@@ -148,35 +162,61 @@
                         $currentTab.removeClass('resp-tab-active').css({
                             'background-color': options.inactive_bg,
                             'border-color': 'none'
-                        });
+                        }).attr('aria-selected','false');
                         return false;
                     }
                     if (!$currentTab.hasClass('resp-tab-active') && $currentTab.hasClass('resp-accordion')) {
-                        $respTabs.children().children('.resp-tab-active').removeClass('resp-tab-active').css({
-                            'background-color': options.inactive_bg,
-                            'border-color': 'none'
-                        });
-                        $respTabsContainer.find('.resp-tab-content-active').slideUp().removeClass('resp-tab-content-active resp-accordion-closed');
-                        $respTabs.find("[aria-controls=" + $tabAria + "]").addClass('resp-tab-active').css({
-                            'background-color': options.activetab_bg,
-                            'border-color': options.active_border_color
-                        });
+                        $respTabs.children().children('.resp-tab-active')
+                            .removeClass('resp-tab-active')
+                            .css({
+                                'background-color': options.inactive_bg,
+                                'border-color': 'none'
+                            })
+                            .attr('aria-selected','false');
+                        $respTabsContainer.find('.resp-tab-content-active')
+                            .slideUp()
+                            .removeClass('resp-tab-content-active resp-accordion-closed')
+                            .attr('aria-hidden','true');
+                        $respTabs.find("[aria-controls=" + $tabAria + "]")
+                            .addClass('resp-tab-active').css({
+                                'background-color': options.activetab_bg,
+                                'border-color': options.active_border_color
+                            })
+                            .attr('aria-selected','true');
 
-                        $respTabsContainer.find('#' + $tabAria).slideDown().addClass('resp-tab-content-active');
+                        $respTabsContainer.find('#' + $tabAria)
+                            .slideDown()
+                            .addClass('resp-tab-content-active')
+                            .attr('aria-hidden','false');
                     } else {
-                        $respTabs.children().children('.resp-tab-active').removeClass('resp-tab-active').css({
-                            'background-color': options.inactive_bg,
-                            'border-color': 'none'
-                        });
+                        $respTabs.children().children('.resp-tab-active')
+                            .removeClass('resp-tab-active')
+                            .css({
+                                'background-color': options.inactive_bg,
+                                'border-color': 'none'
+                            })
+                            .attr('aria-selected','false');
 
-                        $respTabsContainer.find('.resp-tab-content-active').removeAttr('style').removeClass('resp-tab-content-active').removeClass('resp-accordion-closed');
+                        $respTabsContainer.find('.resp-tab-content-active')
+                            .removeAttr('style')
+                            .removeClass('resp-tab-content-active')
+                            .removeClass('resp-accordion-closed')
+                            .attr('aria-hidden','true');
 
-                        $respTabs.find("[aria-controls=" + $tabAria + "]").addClass('resp-tab-active').css({
-                            'background-color': options.activetab_bg,
-                            'border-color': options.active_border_color
-                        });
+                        $respTabs.find("[aria-controls=" + $tabAria + "]")
+                            .addClass('resp-tab-active')
+                            .css({
+                                'background-color': options.activetab_bg,
+                                'border-color': options.active_border_color
+                            })
+                            .attr('aria-selected','true');
 
-                        $respTabsContainer.find('#' + $tabAria).addClass('resp-tab-content-active').attr('style', 'display:block');
+                        $respTabsContainer.find('#' + $tabAria)
+                            .addClass('resp-tab-content-active')
+                            .attr({
+                                'style': 'display:block',
+                                'aria-hidden': 'false'
+                            });
                     }
                     //Trigger tab activation event
                     $currentTab.trigger('tabactivate', $currentTab);
@@ -204,12 +244,72 @@
                 }
 
                 // Setup events
-                $respTabsItems.click(function() {
-                    processEvent(this);
-                });
-                $respTabsH2.click(function() {
-                    processEvent(this);
-                });
+                // $respTabsItems.click(function() {
+                //     processEvent(this);
+                // });
+                // $respTabsH2.click(function() {
+                //     processEvent(this);
+                // });
+                $.merge($respTabsItems, $respTabsH2)
+                    .click(function() {
+                        processEvent(this);
+                    })
+                    .keydown(function(e) {
+                        if (options.keyboard) {
+                            var key = e.keyCode;
+                            if ( (key > 36 && key < 41) || key === 13) {
+                                var $currentTab = $(this);
+                                var tabActive = $currentTab.hasClass('resp-tab-active');
+                                var inAccordion = $currentTab.hasClass('resp-accordion');
+                                var inVtabs = options.type === 'vertical';
+
+                                if (tabActive) {
+                                    switch (key) {
+                                        case 37:
+                                            if (!inAccordion && !inVtabs) {
+                                               var $prev =  $currentTab.prev();
+                                               if ($prev.length) {
+                                                    e.preventDefault();
+                                                    processEvent($prev);
+                                               }
+                                            }
+                                            break;
+                                        case 38:
+                                            if (inAccordion || inVtabs) {
+                                               var $prev =  inAccordion ? $currentTab.prev().prev() : $currentTab.prev();
+                                               if ($prev.length) {
+                                                    e.preventDefault();
+                                                    processEvent($prev);
+                                               }
+                                            }
+                                            break;
+                                        case 39:
+                                            if (!inAccordion && !inVtabs) {
+                                               var $next =  $currentTab.next();
+                                               if ($next.length) {
+                                                    e.preventDefault();
+                                                    processEvent($next);
+                                               }
+                                            }
+                                            break;
+                                        case 40:
+                                            if (inAccordion || inVtabs) {
+                                               var $next = inAccordion ? $currentTab.next().next() :$currentTab.next();
+                                               if ($next.length) {
+                                                    e.preventDefault();
+                                                    processEvent($next);
+                                               }
+                                            }
+                                            break;
+                                    };
+                                }
+                                if (key === 13 || (key === 13 && inAccordion) ) {
+                                    e.preventDefault();
+                                    processEvent($currentTab);
+                                }
+                            }
+                        }
+                    });
             });
         }
     });
