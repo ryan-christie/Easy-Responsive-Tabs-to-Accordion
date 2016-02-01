@@ -10,6 +10,7 @@
                 fit: true,
                 closed: false,
                 keyboard: true,
+                history: false,
                 activetab_bg: 'white',
                 inactive_bg: '#F5F5F5',
                 active_border_color: '#c1c1c1',
@@ -21,7 +22,7 @@
             var options = $.extend(defaults, options);
             var opt = options, jtype = opt.type, jfit = opt.fit, jwidth = opt.width, vtabs = 'vertical', accord = 'accordion';
             var hash = window.location.hash;
-            var historyApi = !!(window.history && history.replaceState);
+            var historyApi = !!(window.history && history.replaceState && options.history);
 
             //Events
             $(this).bind('tabactivate', function (e, currentTab) {
