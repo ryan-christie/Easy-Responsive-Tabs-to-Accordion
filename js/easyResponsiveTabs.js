@@ -7,6 +7,7 @@
             var defaults = {
                 type: 'default', //default, vertical, accordion;
                 width: 'auto',
+                init_class: 'resp-tabs-init',
                 fit: true,
                 closed: false,
                 keyboard: true,
@@ -41,8 +42,8 @@
                     'display': 'block',
                     'width': jwidth
                 });
-                var $respTabsList = $respTabs.children('ul').attr('role','tablist');
                 var respTabsId = $respTabs.attr('id');
+                var $respTabsList = $respTabs.children('ul').attr('role','tablist');
                 var $respTabsItems = $respTabsList.children().addClass('resp-tab-item');
 
                 if (options.type == 'vertical')
@@ -257,12 +258,6 @@
                 }
 
                 // Setup events
-                // $respTabsItems.click(function() {
-                //     processEvent(this);
-                // });
-                // $respTabsH2.click(function() {
-                //     processEvent(this);
-                // });
                 $.merge($respTabsItems, $respTabsH2)
                     .click(function() {
                         processEvent(this);
@@ -323,6 +318,8 @@
                             }
                         }
                     });
+
+                    $respTabs.removeClass(options.init_class);
             });
         }
     });
