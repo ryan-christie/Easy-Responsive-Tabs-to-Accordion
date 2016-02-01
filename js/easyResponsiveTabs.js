@@ -10,7 +10,8 @@
                 fit: true,
                 closed: false,
                 keyboard: true,
-                history: false,
+                history: true,
+                active_priority: 'hash', // hash, markup
                 activetab_bg: 'white',
                 inactive_bg: '#F5F5F5',
                 active_border_color: '#c1c1c1',
@@ -120,15 +121,26 @@
                 });
 
                 // Show correct content area
-                var tabNum = 0;
+                var tabNum = 0, tabHashMatch = false;
                 if (hash != '') {
                     var matches = hash.match(new RegExp(respTabsId + "([0-9]+)"));
                     if (matches !== null && matches.length === 2) {
+                        tabHashMatch = true;
                         tabNum = parseInt(matches[1], 10) - 1;
                         if (tabNum > count) {
                             tabNum = 0;
                         }
                     }
+                }
+
+                // If no hash declared or markup has prority, check for active tab specified in markup
+                if (!tabHashMatch || options.active_priority==='markup') {
+                    $respTabsItems.each(function(i) {
+                        if ($(this).hasClass('resp-tab-active')) {
+                            tabNum = i;
+                            return false;
+                        }
+                    });
                 }
 
                 //Active correct tab
